@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+# run 'oo'
+# when there's an XCode project, open it in XCode
+# otherwise open TextMate
+
+# what else could we open?
+
 if ARGV.first
   unless File.exist?(ARGV.first)
     puts "\"#{ARGV.first}\" doesn't exist"
