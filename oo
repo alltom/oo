@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+if ARGV.first
+  unless File.exist?(ARGV.first)
+    puts "\"#{ARGV.first}\" doesn't exist"
+    exit 1
+  end
+  
+  if File.file?(ARGV.first)
+    system("mate", ARGV.first)
+    exit
+  else
+    Dir.chdir(ARGV.first)
+    # fall through
+  end
+end
+
+def oo(glob)
+  matching = Dir[glob]
+  system("open", matching.first) and exit if matching.length > 0
+end
+
+oo "*.xcodeproj"
+
+system "mate", "."
