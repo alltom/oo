@@ -26,6 +26,7 @@ def oo(glob)
   system("open", matching.first) and exit if matching.length > 0
 end
 
+oo "*.xcworkspace"
 oo "*.xcodeproj"
 
 system "mate", "."
