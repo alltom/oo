@@ -1,32 +1,69 @@
 #!/usr/bin/env ruby
 
-# run 'oo'
-# when there's an XCode project, open it in XCode
-# otherwise open TextMate
+# context-sensitive "open" wrapper
+# from: http://alltom.com/pages/oo
 
-# what else could we open?
+# usage:
+#  $ oo                         guess what to do with current directory
+#  $ oo [file or directory]     guess what to do with the given file/directory
+
+# apply matchers (defined at bottom of file)
+def match(matchers)
+  matchers.each do |matcher|
+    if matcher[:matcher][]
+      cmd = matcher[:cmd] || "open"
+      target = matcher[:open] ? Dir[matcher[:open]].first : @file
+      exec(cmd, target)
+      exit
+    end
+  end
+end
+
+# does this glob match anything in the directory?
+def has(glob)
+  Dir[glob].length > 0
+end
+
+# is @file included in the glob?
+# (I'd check the glob against the string directly, but I don't know how)
+def is(glob)
+  Dir[glob].include? @file
+end
+
 
 if ARGV.first
-  unless File.exist?(ARGV.first)
+  # bail if target doesn't exist
+  if !File.exist?(ARGV.first)
     puts "\"#{ARGV.first}\" doesn't exist"
     exit 1
   end
   
   if File.file?(ARGV.first)
-    system("mate", ARGV.first)
-    exit
+    Dir.chdir(File.dirname(ARGV.first))
+    @file = File.basename(ARGV.first)
   else
     Dir.chdir(ARGV.first)
-    # fall through
+    @file = "."
   end
+else
+  @file = "."
 end
 
-def oo(glob)
-  matching = Dir[glob]
-  system("open", matching.first) and exit if matching.length > 0
-end
 
-oo "*.xcworkspace"
-oo "*.xcodeproj"
+editor = ENV["EDITOR"] || "mate"
 
-system "mate", "."
+dir_matchers = [
+  { :matcher => lambda { has "*.xcworkspace" }, :open => "*.xcworkspace" },
+  { :matcher => lambda { has "*.xcodeproj" }, :open => "*.xcodeproj" },
+  { :matcher => lambda { has "*.pbxproj" }, :open => "." }, # inside *.xcodeproj dir
+  { :matcher => lambda { has "*.fla" }, :open => "*.fla" },
+  { :matcher => lambda { has "app" }, :cmd => editor }, # rails
+  { :matcher => lambda { true }, :cmd => editor } # default
+]
+
+file_matchers = [
+  { :matcher => lambda { is "*.fla" }, :cmd => "open" },
+  { :matcher => lambda { true }, :cmd => editor } # default
+]
+
+match(@file == "." ? dir_matchers : file_matchers)
