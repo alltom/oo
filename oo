@@ -50,7 +50,7 @@ else
 end
 
 
-editor = ENV["EDITOR"] || "mate"
+editor = ENV["OOEDITOR"] || ENV["EDITOR"] || "mate"
 
 dir_matchers = [
   { :matcher => lambda { has "*.xcworkspace" }, :open => "*.xcworkspace" },
